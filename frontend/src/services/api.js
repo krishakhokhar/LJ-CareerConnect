@@ -1,6 +1,22 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const RAW_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+/**
+ * Normalizes VITE_API_URL so it works whether it's set to the bare backend
+ * origin (e.g. https://your-backend.onrender.com) or already includes the
+ * /api prefix (e.g. https://your-backend.onrender.com/api) - strips any
+ * trailing slash(es) first, then appends /api only if it isn't already
+ * there. Every service file calls api.get('/jobs') etc. (relative paths,
+ * never '/api/...'), so this one normalization is the single source of
+ * truth for the prefix - it can never be doubled and never missing.
+ */
+export const normalizeApiUrl = (url) => {
+  const trimmed = url.replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL = normalizeApiUrl(RAW_API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
